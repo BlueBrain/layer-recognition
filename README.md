@@ -1,4 +1,4 @@
-![arch Logo](docs/source/logo/BPP-Arch-Github_2.jpg)
+![arch Logo](docs/source/logo/BPP-Layer-Recognition-Github.jpg)
 
 [![Build status](https://github.com/jacquemi-bbp/arch/actions/workflows/run-tox.yml/badge.svg?branch=main)](https://github.com/jacquemi-bbp/arch/actions)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
