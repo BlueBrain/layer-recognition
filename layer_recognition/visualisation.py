@@ -619,9 +619,11 @@ def plots_layer_thickness(
 
     # Création des barres d'erreurs
     fig, ax = plt.subplots(figsize=(10, 7))
-    print(f'INFO: Layers thickness mean and std:')
-    for layer, mean, std in zip(layers_label, all_animal_thickness_mean, all_animal_thickness_std):
-        print(f' {layer}: {mean} {std}') 
+    print(f"INFO: Layers thickness mean and std:")
+    for layer, mean, std in zip(
+        layers_label, all_animal_thickness_mean, all_animal_thickness_std
+    ):
+        print(f" {layer}: {mean} {std}")
     plt.barh(
         layers_label,
         all_animal_thickness_mean,
