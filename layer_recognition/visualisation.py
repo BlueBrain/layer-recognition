@@ -24,6 +24,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D
+from scipy.signal import find_peaks
 
 from layer_recognition.geometry import compute_cells_polygon_level
 
@@ -526,27 +527,41 @@ def plots_cells_size_per_layers(area_dataframe, output_path=None):
 
     labels = ["L1 ", "L2 ", "L3 ", "L4 ", "L5 ", "L6a ", "L6b "]
     ratios = [0.6, 1.2, 2.6, 1.5, 2.7, 3.1, 0.7]
-    _, axes = plt.subplots(7, figsize=(5, 20), gridspec_kw={"height_ratios": ratios})
+    _, axes = plt.subplots(7, figsize=(5, 20), sharex=True, gridspec_kw={"height_ratios": ratios})
 
+    
     layers = np.unique(area_dataframe.RF_prediction)
     for i, layer in enumerate(layers):
         layer_area_dataframe = area_dataframe[area_dataframe.RF_prediction == layer]
         areas = layer_area_dataframe["Area µm^2"].to_numpy()
         diameters = np.sqrt((areas / pi)) * 2
-        _ = axes[i].hist(diameters, bins=100, color=layers_color[layer])
+        hist_res = axes[i].hist(diameters, bins=50, color=layers_color[layer])
+        counts, bins = hist_res[0], hist_res[1]
+        peaks, _ = find_peaks(counts, height=0)
+        peak_max_indice = np.argsort(counts[peaks])[-2:]
+        bins_max_indice = peaks[peak_max_indice]
+        peak_diameters = bins[bins_max_indice]
+  
+        print(peak_diameters)
+        print(f'INFO: {layer} mean cell diameters: {np.mean(diameters)}, std: {np.std(diameters)}, peaks {peak_diameters}')
+
+        
+
         axes[i].spines["top"].set_visible(False)
         axes[i].spines["right"].set_visible(False)
         axes[i].spines["bottom"].set_visible(False)
         axes[i].spines["left"].set_visible(False)
-        axes[i].set_ylim(bottom=0, top=1e4 * ratios[i])
+        #axes[i].set_ylim(bottom=0, top=1e4 * ratios[i])
         axes[i].set_yticklabels([])
         axes[i].set_yticks([])
         axes[i].set_ylabel(labels[i], rotation=0, fontsize=12)
         axes[i].tick_params(axis="x", labelsize=12)
+        axes[i].vlines(peak_diameters, 0, counts[bins_max_indice], colors='black')
 
+    '''
     for i in range(6):
         axes[i].set_xticks([])
-
+    '''
     scalebar = AnchoredHScaleBar(
         size=5000,
         label="5000",
@@ -560,8 +575,11 @@ def plots_cells_size_per_layers(area_dataframe, output_path=None):
     axes[5].add_artist(scalebar)
 
     axes[0].set_title("S1HL cells mean diameter (µm)", fontsize=12)
+    print(output_path)
     plt.savefig(output_path, bbox_inches="tight", pad_inches=0)
 
+
+ 
 
 def plots_cells_size(
     area_dataframe, output_path=None, save_plot_flag=False, visualisation_flag=False
