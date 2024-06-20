@@ -24,9 +24,10 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D
-from scipy.signal import find_peaks
+from scipy.optimize import curve_fit
 
 from layer_recognition.geometry import compute_cells_polygon_level
+from layer_recognition.utilities import bimodal, gauss
 
 # plt.rcParams["font.family"] = "Arial"
 layers_color = {
@@ -535,15 +536,21 @@ def plots_cells_size_per_layers(area_dataframe, output_path=None):
         layer_area_dataframe = area_dataframe[area_dataframe.RF_prediction == layer]
         areas = layer_area_dataframe["Area µm^2"].to_numpy()
         diameters = np.sqrt((areas / pi)) * 2
-        hist_res = axes[i].hist(diameters, bins=50, color=layers_color[layer])
-        counts, bins = hist_res[0], hist_res[1]
-        peaks, _ = find_peaks(counts, height=0)
-        peak_max_indice = np.argsort(counts[peaks])[-2:]
-        bins_max_indice = peaks[peak_max_indice]
-        peak_diameters = bins[bins_max_indice]
-  
-        print(peak_diameters)
-        print(f'INFO: {layer} mean cell diameters: {np.mean(diameters)}, std: {np.std(diameters)}, peaks {peak_diameters}')
+   
+        y,x,_=axes[i].hist(diameters, 100, alpha=.4, color=layers_color[layer])
+        x=(x[1:]+x[:-1])/2 # for len(x)==len(y)
+        expected = (diameters.mean()-diameters.std(), 0.2, 100,
+                    diameters.mean()+diameters.std(), 0.2, 100)
+        params, cov = curve_fit(bimodal, x, y, expected)
+        sigma=np.sqrt(np.diag(cov))
+        x_fit = np.linspace(x.min(), x.max(), 500)
+
+        y_pop_1 = gauss(x_fit, *params[:3])
+        axes[i].plot(x_fit, y_pop_1, color='black', lw=.4, ls="-", label='cell pop 1')
+        axes[i].vlines(params[0], 0, y_pop_1.max(), colors='red',  lw=1, ls=":")
+        y_pop_2 = gauss(x_fit, *params[3:])
+        axes[i].plot(x_fit, y_pop_2, color='black', lw=.4, ls="-", label='cell pop 2')
+        axes[i].vlines(params[3], 0, y_pop_2.max(), colors='red', lw=1, ls=":")
 
         
 
@@ -556,7 +563,7 @@ def plots_cells_size_per_layers(area_dataframe, output_path=None):
         axes[i].set_yticks([])
         axes[i].set_ylabel(labels[i], rotation=0, fontsize=12)
         axes[i].tick_params(axis="x", labelsize=12)
-        axes[i].vlines(peak_diameters, 0, counts[bins_max_indice], colors='black')
+
 
     '''
     for i in range(6):

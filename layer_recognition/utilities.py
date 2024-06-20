@@ -196,3 +196,11 @@ def get_s1hl_corners(df_points):
     bottom_right = df_points[df_points.index == "bottom_right"].to_numpy()[0]
     bottom_left = df_points[df_points.index == "bottom_left"].to_numpy()[0]
     return top_left, top_right, bottom_right, bottom_left
+
+
+def gauss(x, mu, sigma, A):
+    return A*np.exp(-(x-mu)**2/2/sigma**2)
+
+def bimodal(x, mu1, sigma1, A1, mu2, sigma2, A2):
+    return gauss(x,mu1,sigma1,A1)+gauss(x,mu2,sigma2,A2)
+
