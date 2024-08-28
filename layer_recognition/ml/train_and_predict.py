@@ -225,10 +225,15 @@ def predict(
     min_samples
         Minimum number of samples to find to define a central point in DBSCAN.
     """
+    print('DEBUG enter predict function')
+    import pandas as pd
     logger.info("Predicting on un-annotated images.")
     image_names = get_image_files(pred_dir, pred_glob)
     for image in tqdm.tqdm(image_names, total=len(image_names)):
-        x, _, detection_df = image_to_df(
+        print(f'DEBUG  predict function image {image}')
+        df = pd.read_csv(str(pred_dir) + '/' +  image)
+        print(f'DEBUG  len(df) {len(df)}')
+        x, _, detection_df = image_to_df( 
             [image],
             pred_dir,
             classes=classes,
@@ -238,6 +243,7 @@ def predict(
             extension=pred_extension,
             gt_column=gt_column,
         )
+        print(f'DEBUG  len(x) {len(x)}')
         try:
             if clean:
                 predictions = clean_predictions(
@@ -248,7 +254,9 @@ def predict(
                     gt_column=gt_column,
                 )
             else:
+                print('DEBUG START prediction')
                 predictions = model.predict(x)
+                print('DEBUG END prediction')
         except ValueError as e:
             print(f"ERROR: {e}")
             raise (SystemExit(-1))

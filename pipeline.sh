@@ -7,7 +7,7 @@ FIGURE_PATH="/arch_results/Figures"
 
 FOR_PREDICTION_PATH="/arch_results/prediction"
 FOR_TRAINING_PATH="/arch_results/training"
-MODEL_PATH=/arch_results/training/model"
+MODEL_PATH="/arch_results/training/model"
 
 printf "\nPIPELINE INFO: QuPath: Detect cells, export annotations and cells features\n"
 #qupath script ./qupath_scripts/full_QuPath_script.groovy -p $QUPATH_PROJECT_PATH

@@ -54,7 +54,7 @@ from layer_recognition.ml.utils import get_classes_and_features
     "--distinguishable-second-layer",
     "-d",
     is_flag=True,
-    default=True,
+    default=False,
     help="Treats layer 2 and 3 as separate layers.",
 )
 @click.option(
@@ -122,6 +122,7 @@ def cmd(
         )
     assert os.path.exists(model_file)
     rf = pickle.load(open(model_file, "rb"))
+    print(f'INFO: Model is loaded')
 
     if pred_dir:
         predict(

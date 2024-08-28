@@ -23,7 +23,10 @@ def concate_area_dataframes(file_lists, rf_prediction=False):
                 df_area = df_image[["Image", "Area µm^2"]]
             frames.append(df_area)
 
-    return pd.concat(frames, ignore_index=True)
+    try:
+        return pd.concat(frames, ignore_index=True)
+    except ValueError:
+        return pd.DataFrame()
 
 
 @click.command()
@@ -38,14 +41,15 @@ def cmd(config_file_path):
     config.read(config_file_path)
 
     output_path = config["BATCH"]["output_path"]
-    cell_features_path = config["BATCH"]["cell_features_path"]
+    cell_features_path = config["BATCH"]["cell_features_path"] + '/'
     try:
         cell_features_file_prefix = config["BATCH"]["cell_position_file_prefix"]
     except KeyError:
         cell_features_file_prefix = "Features_"
-
     file_list = [glob.glob(cell_features_path + cell_features_file_prefix + "*")]
-
+    print(f'INFO: file to process: {file_list}')
+    if len(file_list[0]) == 0:
+        print(f'WARNING: no input files to process')
     area_dataframe = concate_area_dataframes(file_list, rf_prediction=True)
     os.makedirs(output_path, exist_ok=True)
     area_dataframe.to_csv(output_path + "/cells_area.csv")

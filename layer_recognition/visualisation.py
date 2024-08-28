@@ -427,6 +427,7 @@ def plot_densities_by_layer(
         output_path:(str)
         visualisation_flag(bool) If set display the figure otherwise save it.
     """
+    print(f'DEBUG len(layers) = {len(layers)},  len(layers_densities) = {len(layers_densities)}')
     y_pos = np.arange(len(layers))
     plt.barh(y_pos, layers_densities, align="center")
     plt.gca().set_yticks(y_pos, labels=layers)
@@ -456,8 +457,11 @@ def plot_layers(
     colors = get_layer_colors(polygons)
     for cells_pos, polygon, color in zip(cells_pos_list, polygons, colors):
         plt.scatter(cells_pos[:, 0], cells_pos[:, 1], s=1, color=color)
-        x, y = polygon.exterior.xy
-        plt.plot(x, y, color=color)
+        try:
+            x, y = polygon.exterior.xy
+            plt.plot(x, y, color=color)
+        except AttributeError:
+            pass
     plt.title(f"{image_name} Layer polygon for alpha={alpha}")
     plt.gca().invert_yaxis()
     plt.gca().axis("equal")
@@ -581,7 +585,7 @@ def plots_cells_size_per_layers(area_dataframe, output_path=None):
 
     axes[5].add_artist(scalebar)
 
-    axes[0].set_title("S1HL cells mean diameter (µm)", fontsize=12)
+    axes[0].set_title("cells mean diameter (µm)", fontsize=12)
     print(output_path)
     plt.savefig(output_path, bbox_inches="tight", pad_inches=0)
 
@@ -602,7 +606,7 @@ def plots_cells_size(
     _ = plt.hist(diameters, bins=100)
     plt.ylabel("Cell count")
     plt.xlabel("Cell area (µm^2)")
-    plt.title("S1HL Cell area (µm^2)")
+    plt.title("Cells area (µm^2)")
 
     current_values = plt.gca().get_yticks()
     plt.gca().set_yticklabels([f"{x:.1e}" for x in current_values])
@@ -715,6 +719,7 @@ def plot_cell_density_by_animal(
     bar_colors = get_color(distiguish=True, return_type="list", return_unit="float")
     fig = plt.figure(figsize=(10, 10))
 
+    print(f'INFO: densities_mean {densities_mean}')
     plt.barh(layers, densities_mean, xerr=densities_std, capsize=2, color=bar_colors)
     plt.ylabel("cell density (cell/mm3)")
     plt.xlabel("Layers cell density (cell/mm3)")
