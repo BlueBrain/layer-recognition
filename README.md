@@ -168,6 +168,10 @@ ed: 50 µm: Nearby detection counts
      - saveFolderPath
      - CountourFinderPath
      - LayerClassiferPath
+     - brain_area_name 
+     - run_classifier  (set to True for Ground Truth image and False for the other)
+
+
    - Create the saveFolderPath if it does not already exist.
 
 
