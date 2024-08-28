@@ -54,7 +54,7 @@ from layer_recognition.ml.utils import get_classes_and_features
     "--distinguishable-second-layer",
     "-d",
     is_flag=True,
-    default=True,
+    default=False,
     help="Treats layer 2 and 3 as separate layers.",
 )
 @click.option(
