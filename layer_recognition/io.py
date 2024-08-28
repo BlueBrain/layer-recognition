@@ -139,7 +139,7 @@ def read_qupath_annotations(directory_path, image_name):
     try:
         s1_pixel_coordinates = annotations["S1HL"][0]
     except KeyError:
-        s1_pixel_coordinates = annotations["S1"][0]
+        s1_pixel_coordinates = annotations["MPtA"][0]
     if (
         isinstance(s1_pixel_coordinates, np.ndarray)
         and s1_pixel_coordinates.shape[0] == 1

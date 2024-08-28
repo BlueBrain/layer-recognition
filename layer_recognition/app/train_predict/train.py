@@ -42,7 +42,7 @@ from layer_recognition.ml.train_and_predict import train_and_evaluate_model
     "--distinguishable-second-layer",
     "-d",
     is_flag=True,
-    default=True,
+    default=False,
     help="Treats layer 2 and 3 as separate layers.",
 )
 @click.option(

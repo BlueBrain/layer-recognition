@@ -373,7 +373,10 @@ def compute_cell_density_per_layer(nb_cell_per_slide, split_polygons, z_length):
     """
     densities = []
     for nb_cell, polygon in zip(nb_cell_per_slide, split_polygons):
-        densities.append(nb_cell / ((polygon.area / 1e6) * z_length))
+        if polygon.area > 0.:
+            densities.append(nb_cell / ((polygon.area / 1e6) * z_length))
+        else:
+            densities.append(0.)
 
     return densities
 
