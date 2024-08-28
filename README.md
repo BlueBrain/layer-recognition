@@ -183,7 +183,7 @@ ed: 50 µm: Nearby detection counts
      - pixel_size
    - execute the following python script
    ```shell
-   $ pylayer_recognition convert --config-file-path ./Config/batch_convert.ini
+   pylayer_recognition convert --config-file-path ./Config/batch_convert.ini
    ```
 
 
@@ -191,7 +191,7 @@ ed: 50 µm: Nearby detection counts
 
    - execute the following python script
    ```shell
-   $ pylayer_recognition convert-qupath-project --qupath-project-path ProjectQuPath.qpproj --output-path /arch/Results
+   pylayer_recognition convert-qupath-project --qupath-project-path ProjectQuPath.qpproj --output-path /arch/Results
    ```
 
 
@@ -199,44 +199,44 @@ ed: 50 µm: Nearby detection counts
    - modify ./Config/batch_density_depth with your configuration
      - execute the following python script
    ```shell
-   $  pylayer_recognition density-per-depth --config-file-path ./Config/batch_density_depth.ini
+   pylayer_recognition density-per-depth --config-file-path ./Config/batch_density_depth.ini
    ```
 5. Train the ML model the layers:
    - execute the following python script
    ```shell
-   $  pylayer_recognition -v train-model --train-dir TRAINING_PATH --train-glob "Feat*" --extension csv  --save-dir RESULT_PATH --distinguishable-second-layer
+   pylayer_recognition -v train-model --train-dir TRAINING_PATH --train-glob "Feat*" --extension csv  --save-dir RESULT_PATH --distinguishable-second-layer
    ``` 
 
 6.Predict the layers:
    - execute the following python script
    ```shell
-   $  pylayer_recognition -v  layers-predict --model-file RESULT_PATH/trained_rf.pkl  --pred-dir $PREDICTION_PATH --pred-save  RESULT_PATH  --pred-glob "Feat*" --distinguishable-second-layer
+   pylayer_recognition -v  layers-predict --model-file RESULT_PATH/trained_rf.pkl  --pred-dir $PREDICTION_PATH --pred-save  RESULT_PATH  --pred-glob "Feat*" --distinguishable-second-layer
    ```
 
 7. Compute the  cell densities  by layer (L2 and L3 merged)
    - modify ./Config/batch_density_layer_merged.ini with your configuration
    - execute the following python script
    ```shell
-   $  pylayer_recognition density-per-layer --config-file-path ./Config/batch_density_layer_merged.ini
+   pylayer_recognition density-per-layer --config-file-path ./Config/batch_density_layer_merged.ini
    ```
 8. Compute the  cell densities  by layer (L2 and L3 distinguished)
    - modify ./Config/batch_density_layer_distinguish.ini with your configuration
    - execute the following python script
    ```shell
-   $  pylayer_recognition density-per-layer --config-file-path ./Config/batch_density_layer_distinguish.ini
+   pylayer_recognition density-per-layer --config-file-path ./Config/batch_density_layer_distinguish.ini
     ```
 
 9. Prepare dataset for the cell size figures
    - modify ./Config/batch_size with your configuration
    - execute the following python script
    ```shell
-   $  pylayer_recognition cell_size --config-file-path ./Config/batch_size.ini
+   pylayer_recognition cell-size --config-file-path ./Config/batch_size.ini
    ```
 
 9. Prepare dataset for the layers thickness figures
    - execute the following python script
    ```shell
-   $  pylayer_recognition layer-thickness --feature-file-path FEATURES_PATH --output-filename OUTPUT/layer_thickness.csv
+   pylayer_recognition layer-thickness --feature-file-path FEATURES_PATH --output-filename OUTPUT/layer_thickness.csv
    ```
 
 
@@ -248,7 +248,7 @@ ed: 50 µm: Nearby detection counts
   - FIGURE_PATH
 - execute the pipeline.sh command:
 ```shell
-$  pipeline.sh
+pipeline.sh
 ```
 ## Figures Howto
 
