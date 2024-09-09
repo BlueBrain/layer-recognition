@@ -228,6 +228,7 @@ def predict(
     logger.info("Predicting on un-annotated images.")
     image_names = get_image_files(pred_dir, pred_glob)
     for image in tqdm.tqdm(image_names, total=len(image_names)):
+        print(f'INFO: image {image}')
         x, _, detection_df = image_to_df(
             [image],
             pred_dir,

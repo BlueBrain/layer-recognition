@@ -727,29 +727,34 @@ def plot_cell_density_by_animal(
 
     index = 0
     label = "animal mean"
-    for values in densities_dict_mean.values():
+    for key, values in densities_dict_mean.items():
         for density in values:
-            if label is not None:
-                plt.scatter(
-                    density,
-                    index + (np.random.rand() / 2) - 0.25,
-                    s=5,
-                    c="orange",
-                    label=label,
-                )
-                label = None
+            if np.isnan(density) == False:
+                if label is not None:
+                    plt.scatter(
+                        density,
+                        index + (np.random.rand() / 2) - 0.25,
+                        s=5,
+                        c="orange",
+                        label=label,
+                    )
+                    label = None
+                else:
+                    plt.scatter(
+                        density, index + (np.random.rand() / 2) - 0.25, s=5, c="orange"
+                    )
             else:
-                plt.scatter(
-                    density, index + (np.random.rand() / 2) - 0.25, s=5, c="orange"
-                )
+                print(f"INFO {key} density is NAN")
         index += 1
 
     plt.gca().invert_yaxis()
     plt.legend()
 
-    fig.savefig(output_path, bbox_inches="tight", pad_inches=0)
     if visualisation_flag:
         plt.show()
+    else:
+       fig.savefig(output_path, bbox_inches="tight", pad_inches=0)
+
 
     """
     print(density_animal_dataframe)
