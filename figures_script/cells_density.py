@@ -406,7 +406,7 @@ if __name__ == "__main__":
         print(f"Plot {np.unique(density_df.image).size} images included the data")
         plot_mean_and_std_dev(
             density_df,
-            title="Cell density as a function of percentage of depth of the S1HL brain region",
+            title="Cell density as a function of percentage of depth of the brain region area",
             output_path=str(args.output_figure_path / "full_std_density_percentage.")
             + args.png,
             visualisation_flag=args.visualisation_flag,
@@ -462,7 +462,7 @@ if __name__ == "__main__":
                 [left_density_df, right_density_df],
                 labels=["left", "right"],
                 colors=["blue", "red"],
-                title="Cell density as a function of percentage of depth of the S1HL brain region",
+                title="Cell density as a function of percentage of depth of the brain region area",
                 output_path=str(
                     args.output_figure_path / "left_right_std_density_percentage."
                 )
