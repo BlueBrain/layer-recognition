@@ -31,6 +31,7 @@ from layer_recognition.geometry import (
     create_grid,
     get_bigger_polygon,
     get_inside_points,
+    find_n_closest_pairs
 )
 from layer_recognition.io import get_cells_coordinate
 
@@ -63,7 +64,10 @@ def compute_depth_density(
     save_plot_flag=False,
 ):
     """
-    compute the cell densities as function of brain depth
+    compute the cell densities as function of brain depth.
+    If the cells_features_df contains a 'RF_prediction' columns, then
+    the layer bundaries for each layer is also computed in percentage
+    of brain depth
     Args:
         image_name:(str)
         cells_features_df:(panda.Dataframe)
@@ -116,6 +120,41 @@ def compute_depth_density(
         nb_cell_per_slide, split_polygons, thickness_cut / 1e3
     )
 
+    layer_boundaries_dataframe = None
+    if "RF_prediction" in cells_features_df.columns:
+        # Compute the layer bundaries for each layer as a percentage of brain area depth
+        layers = np.unique(cells_features_df.RF_prediction)
+        boundaries = []
+        for layer_name_a, layer_name_b in zip(layers[:-1], layers[1:]):
+            population_top = cells_features_df[
+                cells_features_df.RF_prediction == layer_name_a
+            ][["Centroid X µm", "Centroid Y µm"]].to_numpy()
+            population_bottom = cells_features_df[
+                cells_features_df.RF_prediction == layer_name_b
+            ][["Centroid X µm", "Centroid Y µm"]].to_numpy()
+
+            nb_of_neigbors = 20
+            closest_pairs = find_n_closest_pairs(
+                population_top, population_bottom, nb_of_neigbors
+            )
+            neigbours = []
+            for a_idx, b_idx, dist in closest_pairs:
+                neigbours.append(population_top[a_idx])
+            neigbours = np.array(neigbours)
+            nb_cell_per_slide = count_nb_cell_per_polygon(
+                neigbours[:, 0], neigbours[:, 1], split_polygons
+            )
+
+            boundaries.append(np.argmax(nb_cell_per_slide) / nb_row * 100)
+
+        layer_boundaries_dataframe = pd.DataFrame(
+            {
+                "image": [image_name] * (len(layers) - 1),
+                "layers": layers[:-1],
+                "boundaries": boundaries,
+            }
+        )
+
     if visualisation_flag or save_plot_flag:
         plot_split_polygons_and_cell_depth(
             split_polygons,
@@ -161,7 +200,7 @@ def compute_depth_density(
         }
     )
 
-    return densities_dataframe
+    return densities_dataframe, layer_boundaries_dataframe
 
 
 def single_image_process_per_layer(
@@ -200,7 +239,10 @@ def single_image_process_per_layer(
     assert "exclude_for_density" in cells_features_df.columns
 
     per_layer_dataframe = None
+    assert "RF_prediction" in cells_features_df
+
     if "RF_prediction" in cells_features_df:
+        print("INFO: RF_prediction in cells_features_df")
         layers = np.unique(cells_features_df.RF_prediction)
         layers_densities, cells_pos_list, polygons = densities_from_layers(
             cells_features_df, layers, thickness_cut, alpha=alpha
@@ -269,7 +311,7 @@ def single_image_process_per_depth(
     cells_features_df = pd.read_csv(cell_position_file_path, index_col=0)
     assert "exclude_for_density" in cells_features_df.columns
 
-    percentage_dataframe = compute_depth_density(
+    percentage_dataframe, layer_boundaries_dataframe = compute_depth_density(
         image_name,
         cells_features_df,
         points_annotations_path,
@@ -282,7 +324,7 @@ def single_image_process_per_depth(
         save_plot_flag=save_plot_flag,
     )
 
-    return percentage_dataframe
+    return percentage_dataframe, layer_boundaries_dataframe
 
 
 def densities_from_layers(

@@ -163,3 +163,4 @@ cython_debug/
 Figures/
 Results/
 tests/functional/arch_results/
+py311_venv_bin/

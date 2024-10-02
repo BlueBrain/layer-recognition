@@ -323,7 +323,7 @@ def multiple_image_process_per_layer(
             cell_position_path + "/" + cell_position_file_prefix + image_name + ".csv"
         )
 
-        per_layer_dataframe = single_image_process_per_layer(
+        per_layer_dataframe, layer_boundaries_dataframe = single_image_process_per_layer(
             image_name,
             cell_position_file_path,
             output_path,
@@ -333,6 +333,20 @@ def multiple_image_process_per_layer(
             save_plot_flag=save_plot_flag,
             alpha=alpha,
         )
+
+        if layer_boundaries_dataframe is not None:
+            layer_boundary_dataframe_full_path = (
+                output_path + "/" + image_name + "__layer_boundaries.csv"
+            )
+            write_dataframe_to_file(
+                layer_boundaries_dataframe, layer_boundary_dataframe_full_path
+            )
+            print(
+                f"INFO: Write layers boundary dataframe to \
+             {layer_boundary_dataframe_full_path}"
+            )
+
+
 
         animal_frames.append(per_layer_dataframe)
 
@@ -444,7 +458,7 @@ def multiple_image_process_per_depth(
             s1hl_path + "/" + s1hl_file_prefix + image_name + "_S1HL_annotations.csv"
         )
 
-        densities_dataframe = single_image_process_per_depth(
+        densities_dataframe, layer_boundaries_dataframe = single_image_process_per_depth(
             image_name,
             cell_position_file_path,
             points_annotations_file_path,
@@ -464,7 +478,19 @@ def multiple_image_process_per_depth(
 the per depth density"
             )
         else:
-            densities_dataframe_full_path = output_path + "/" + image_name + ".csv"
+            densities_dataframe_full_path = output_path + "/" + image_name + "_density_depth.csv"
 
             write_dataframe_to_file(densities_dataframe, densities_dataframe_full_path)
             print(f"INFO: Write density dataframe =to {densities_dataframe_full_path}")
+
+        if layer_boundaries_dataframe is not None:
+            layer_boundary_dataframe_full_path = (
+                output_path + "/" + image_name + "_layer_boundaries.csv"
+            )
+            write_dataframe_to_file(
+                layer_boundaries_dataframe, layer_boundary_dataframe_full_path
+            )
+            print(
+                f"INFO: Write layers boundary dataframe to \
+                {layer_boundary_dataframe_full_path}"
+            )
