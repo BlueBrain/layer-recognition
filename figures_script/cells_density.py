@@ -131,6 +131,8 @@ def get_filtered_density_df(
     images_id,
     density_df,
 ):
+    if density_df is None:
+        return None
     image_id = list(density_df["image"])
     mask = density_df.image.isin(images_id)
     return density_df[mask]
@@ -421,6 +423,7 @@ if __name__ == "__main__":
     else:
         brain_area = ""
 
+    layer_boundary_mean_df, layer_boundary_df = None, None
     layer_boundaries_path = None
     if args.layer_boundaries_path is not None:
         file_list = glob.glob(str(args.layer_boundaries_path) + "/*csv")
@@ -495,24 +498,27 @@ if __name__ == "__main__":
             left_density_df = get_filtered_density_df(left_image_id, density_df)
             right_density_df = get_filtered_density_df(right_image_id, density_df)
 
-            left_layer_boundary_df = get_filtered_density_df(
-                left_image_id, layer_boundary_df
-            )
-            left_layer_boundary_mean_df = (
-                left_layer_boundary_df[["layers", "boundaries"]]
-                .groupby(["layers"])
-                .mean(numeric_only=True)
-                .reset_index()
-            )
-            right_layer_boundary_df = get_filtered_density_df(
-                right_image_id, layer_boundary_df
-            )
-            right_layer_boundary_mean_df = (
-                right_layer_boundary_df[["layers", "boundaries"]]
-                .groupby(["layers"])
-                .mean(numeric_only=True)
-                .reset_index()
-            )
+            if layer_boundary_df is not None:
+                left_layer_boundary_df = get_filtered_density_df(
+                    left_image_id, layer_boundary_df
+                )
+                left_layer_boundary_mean_df = (
+                    left_layer_boundary_df[["layers", "boundaries"]]
+                    .groupby(["layers"])
+                    .mean(numeric_only=True)
+                    .reset_index()
+                )
+                right_layer_boundary_df = get_filtered_density_df(
+                    right_image_id, layer_boundary_df
+                )
+                right_layer_boundary_mean_df = (
+                    right_layer_boundary_df[["layers", "boundaries"]]
+                    .groupby(["layers"])
+                    .mean(numeric_only=True)
+                    .reset_index()
+                )
+            else:
+                left_layer_boundary_mean_df, right_layer_boundary_mean_df = None, None
 
             data = dataframe_to_array(left_density_df)
             print(
@@ -571,15 +577,18 @@ if __name__ == "__main__":
                 animal_density_df = get_filtered_density_df(animal_image_id, density_df)
                 data = dataframe_to_array(animal_density_df)
 
-                animal_bundaries_df = get_filtered_density_df(
-                    animal_image_id, layer_boundary_df
-                )
-                animal_bundaries_mean_df = (
-                    animal_bundaries_df[["layers", "boundaries"]]
-                    .groupby(["layers"])
-                    .mean(numeric_only=True)
-                    .reset_index()
-                )
+                if layer_boundary_df is not None: 
+                    animal_bundaries_df = get_filtered_density_df(
+                        animal_image_id, layer_boundary_df
+                    )
+                    animal_bundaries_mean_df = (
+                        animal_bundaries_df[["layers", "boundaries"]]
+                        .groupby(["layers"])
+                        .mean(numeric_only=True)
+                        .reset_index()
+                    )
+                else:
+                    animal_bundaries_mean_df = None
 
                 plot_mean_and_std_dev(
                     [animal_density_df],
@@ -609,13 +618,16 @@ if __name__ == "__main__":
                 animal_layer_boundary_df = get_filtered_density_df(
                     animal_image_id, layer_boundary_df
                 )
-                animal_bundaries_mean_df = (
-                    animal_layer_boundary_df[["layers", "boundaries"]]
-                    .groupby(["layers"])
-                    .mean(numeric_only=True)
-                    .reset_index()
-                )
-
+                if layer_boundary_df is not None: 
+                    animal_bundaries_mean_df = (
+                        animal_layer_boundary_df[["layers", "boundaries"]]
+                        .groupby(["layers"])
+                        .mean(numeric_only=True)
+                        .reset_index()
+                    )
+                else:
+                    animal_bundaries_mean_df = None
+                    
                 data = dataframe_to_array(animal_density_df)
                 plot_mean_and_std_dev(
                     [animal_density_df],
