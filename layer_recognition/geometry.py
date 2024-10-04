@@ -27,6 +27,8 @@ from shapely.geometry import LineString, MultiLineString, Point, Polygon
 from shapely.geometry.multipolygon import MultiPolygon
 from shapely.ops import split
 
+from scipy.spatial import distance as scipy_distance
+
 
 def distance(pt1, pt2):
     """
@@ -331,3 +333,43 @@ def get_layers_thickness(df_feat, top_left, top_right, bottom_left, bottom_right
         layers_thickness[layer].append(np.linalg.norm(a - b))
 
     return layers_thickness
+
+
+def find_n_closest_pairs(Population_A, Population_B, n=1):
+    """
+    Finds the n closest pairs of points between Population_A and Population_B.
+    
+    Parameters:
+    Population_A : array-like, shape (n_samples_A, 2)
+        The 2D points of the first population.
+    Population_B : array-like, shape (n_samples_B, 2)
+        The 2D points of the second population.
+    n : int, optional (default=1)
+        Number of closest pairs to find.
+        
+    Returns:
+    closest_pairs : list of tuples
+        A list of tuples where each tuple contains:
+        - Index of the point in Population_A
+        - Index of the point in Population_B
+        - Distance between those two points
+    """
+    
+    # Calculate pairwise distances between all points in Population_A and Population_B
+    distances = scipy_distance.cdist(Population_A, Population_B)
+    
+    # Find the indices of the n smallest distances
+    flat_indices = np.argpartition(distances.flatten(), n)[:n]
+    
+    # Convert flat indices to row, column indices
+    row_indices, col_indices = np.unravel_index(flat_indices, distances.shape)
+    
+    # Prepare the results
+    closest_pairs = []
+    for i in range(n):
+        a_idx = row_indices[i]
+        b_idx = col_indices[i]
+        dist = distances[a_idx, b_idx]
+        closest_pairs.append((a_idx, b_idx, dist))
+    
+    return closest_pairs

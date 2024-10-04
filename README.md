@@ -262,7 +262,7 @@ To produce the by hemisphere figures, a csv file is required:
 
  - execute the following python script
    ```shell
-      python figures_script/cells_density.ini
+      python figures_script/cells_density.py
       python figures_script/cells_size.py CELL_SIZE_OUTPUT_PATH/cells_area.csv output_file_path
       python figures_script/layer_thickness.py OUTPUT/layer_thickness.csv output_file_path
    ```

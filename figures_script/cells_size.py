@@ -20,7 +20,10 @@ import sys
 
 import pandas as pd
 
-from layer_recognition.visualisation import plots_cells_size, plots_cells_size_per_layers
+from layer_recognition.visualisation import (
+    plots_cells_size,
+    plots_cells_size_per_layers,
+)
 
 if __name__ == "__main__":
     if len(sys.argv) < 3 or len(sys.argv) > 4:
