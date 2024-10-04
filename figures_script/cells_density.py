@@ -109,7 +109,7 @@ def concate_density_dataframes(file_list, std_dev_factor=1):
     densities = []
     for file in file_list:
         df_image = pd.read_csv(file, index_col=0)
-       
+
         densities.append(df_image.densities)
         densities_mean = np.mean(densities)
 
@@ -153,7 +153,6 @@ def plot(
     median = {}
     plt.figure(figsize=(5, 5))
 
-
     density_dict = defaultdict(list)
     for density in densities_per_depth:
         densities_value = density[:, 1]
@@ -185,15 +184,17 @@ def plot(
 
     if layer_boundary_df is not None:
         colors = get_color()
-        for layer, boundary in zip(layer_boundary_df.layers, layer_boundary_df.boundaries):
-            plt.axhline(boundary/100, color=colors[layer])
-    
+        for layer, boundary in zip(
+            layer_boundary_df.layers, layer_boundary_df.boundaries
+        ):
+            plt.axhline(boundary / 100, color=colors[layer])
+
     plt.title(f"{title}")
     plt.gca().set_xlabel("Cell density cells/mm3")
     plt.gca().set_ylabel("percentage of depth [%]")
     current_values = plt.gca().get_yticks()
-    print(f'DEBUG title {title}, current_values {current_values}')
-    
+    print(f"DEBUG title {title}, current_values {current_values}")
+
     _ = plt.gca().set_yticklabels([format(x, ".0%") for x in current_values])
     current_values = plt.gca().get_xticks()
     _ = plt.gca().set_xticklabels(["{:.1e}".format(x) for x in current_values])
@@ -206,10 +207,9 @@ def plot(
             lgnd.legendHandles[i]._sizes = [5]
             lgnd.legendHandles[i]._alpha = 1
 
-
     if output_path is not None:
         plt.savefig(output_path, bbox_inches="tight", pad_inches=0)
-        print(f'INFO: Figure saved to  {output_path}')
+        print(f"INFO: Figure saved to  {output_path}")
 
     if visualisation_flag:
         plt.show()
@@ -225,7 +225,7 @@ def plot_mean_and_std_dev(
     visualisation_flag=False,
 ):
     """
-    param: density_df' list of (or a single) pandas dataframe with columns : image 	depth_percentage densities
+    param: density_df' list of (or a single) pandas dataframe with columns : image  depth_percentage densities
     """
 
     if not isinstance(density_dfs, list):
@@ -264,11 +264,12 @@ def plot_mean_and_std_dev(
                 label=label + " Standard deviation",
             )
 
-          
             if layer_boundary_df is not None:
                 colors = get_color()
-                for layer, boundary in zip(layer_boundary_df.layers, layer_boundary_df.boundaries):
-                    plt.axhline(boundary/100, color=colors[layer])
+                for layer, boundary in zip(
+                    layer_boundary_df.layers, layer_boundary_df.boundaries
+                ):
+                    plt.axhline(boundary / 100, color=colors[layer])
 
             plt.legend()
 
@@ -326,9 +327,10 @@ def plot_density_per_layer(
 
     if layer_boundary_df is not None:
         colors = get_color()
-        for layer, boundary in zip(layer_boundary_df.layers, layer_boundary_df.boundaries):
-            plt.axhline(boundary/100, color=colors[layer])
-
+        for layer, boundary in zip(
+            layer_boundary_df.layers, layer_boundary_df.boundaries
+        ):
+            plt.axhline(boundary / 100, color=colors[layer])
 
     plt.xlabel("Cell density (cells/mm3)")
     current_values = plt.gca().get_xticks()
@@ -416,8 +418,8 @@ if __name__ == "__main__":
 
     if args.brain_area:
         brain_area = args.brain_area
-    else: brain_area = ""
-
+    else:
+        brain_area = ""
 
     layer_boundaries_path = None
     if args.layer_boundaries_path is not None:
@@ -430,8 +432,13 @@ if __name__ == "__main__":
             layer_boundary_df = None
         else:
             layer_boundary_df = pd.concat(frames, ignore_index=True)
-            layer_boundary_mean_df = layer_boundary_df[['layers','boundaries']].groupby(['layers']).mean(numeric_only=True).reset_index()
-        
+            layer_boundary_mean_df = (
+                layer_boundary_df[["layers", "boundaries"]]
+                .groupby(["layers"])
+                .mean(numeric_only=True)
+                .reset_index()
+            )
+
     if args.per_depth_path:
         file_list = glob.glob(str(args.per_depth_path) + "/*.csv")
         density_df = concate_density_dataframes(file_list)
@@ -462,7 +469,7 @@ if __name__ == "__main__":
             plt_detail=True,
             output_path=str(args.output_figure_path / "full_density_percentage.")
             + args.png,
-            layer_boundary_df = layer_boundary_mean_df,
+            layer_boundary_df=layer_boundary_mean_df,
             visualisation_flag=args.visualisation_flag,
         )
 
@@ -488,10 +495,24 @@ if __name__ == "__main__":
             left_density_df = get_filtered_density_df(left_image_id, density_df)
             right_density_df = get_filtered_density_df(right_image_id, density_df)
 
-            left_layer_boundary_df = get_filtered_density_df(left_image_id, layer_boundary_df)
-            left_layer_boundary_mean_df = left_layer_boundary_df[['layers','boundaries']].groupby(['layers']).mean(numeric_only=True).reset_index()
-            right_layer_boundary_df = get_filtered_density_df(right_image_id, layer_boundary_df)
-            right_layer_boundary_mean_df = right_layer_boundary_df[['layers','boundaries']].groupby(['layers']).mean(numeric_only=True).reset_index()
+            left_layer_boundary_df = get_filtered_density_df(
+                left_image_id, layer_boundary_df
+            )
+            left_layer_boundary_mean_df = (
+                left_layer_boundary_df[["layers", "boundaries"]]
+                .groupby(["layers"])
+                .mean(numeric_only=True)
+                .reset_index()
+            )
+            right_layer_boundary_df = get_filtered_density_df(
+                right_image_id, layer_boundary_df
+            )
+            right_layer_boundary_mean_df = (
+                right_layer_boundary_df[["layers", "boundaries"]]
+                .groupby(["layers"])
+                .mean(numeric_only=True)
+                .reset_index()
+            )
 
             data = dataframe_to_array(left_density_df)
             print(
@@ -544,18 +565,21 @@ if __name__ == "__main__":
 
             project_ID_list = np.unique(analyse_df["Project_ID"])
 
-
- 
             for project_id in project_ID_list:
                 animal_meta_df = analyse_df[analyse_df["Project_ID"] == project_id]
                 animal_image_id = list(animal_meta_df["Image_Name"])
                 animal_density_df = get_filtered_density_df(animal_image_id, density_df)
                 data = dataframe_to_array(animal_density_df)
 
-                animal_bundaries_df= get_filtered_density_df(animal_image_id, layer_boundary_df)
-                animal_bundaries_mean_df = animal_bundaries_df[['layers','boundaries']].groupby(['layers']).mean(numeric_only=True).reset_index()
-
-
+                animal_bundaries_df = get_filtered_density_df(
+                    animal_image_id, layer_boundary_df
+                )
+                animal_bundaries_mean_df = (
+                    animal_bundaries_df[["layers", "boundaries"]]
+                    .groupby(["layers"])
+                    .mean(numeric_only=True)
+                    .reset_index()
+                )
 
                 plot_mean_and_std_dev(
                     [animal_density_df],
@@ -582,8 +606,15 @@ if __name__ == "__main__":
                 df_animal = analyse_df[analyse_df["Project_ID"].str.contains(animal_id)]
                 animal_image_id = list(df_animal["Image_Name"])
                 animal_density_df = get_filtered_density_df(animal_image_id, density_df)
-                animal_layer_boundary_df = get_filtered_density_df(animal_image_id, layer_boundary_df)
-                animal_bundaries_mean_df = animal_layer_boundary_df[['layers','boundaries']].groupby(['layers']).mean(numeric_only=True).reset_index()
+                animal_layer_boundary_df = get_filtered_density_df(
+                    animal_image_id, layer_boundary_df
+                )
+                animal_bundaries_mean_df = (
+                    animal_layer_boundary_df[["layers", "boundaries"]]
+                    .groupby(["layers"])
+                    .mean(numeric_only=True)
+                    .reset_index()
+                )
 
                 data = dataframe_to_array(animal_density_df)
                 plot_mean_and_std_dev(
@@ -652,14 +683,3 @@ if __name__ == "__main__":
         plot_cell_density_by_animal(
             densites, layers, output_path, visualisation_flag=args.visualisation_flag
         )
-
-    """
-    if args.per_animal_path:
-        density_animal_dataframe = pd.read_csv(args.per_animal_path, index_col=0)
-        if not os.path.exists(args.output_figure_path ):
-            # if the directory is not present then create it.
-            os.makedirs(args.output_figure_path )
-        output_path = str(args.output_figure_path / "per_animal." ) + args.png,
-        plot_cell_density_by_animal(density_animal_dataframe, output_path, visualisation_flag=args.visualisation_flag)
-        print(f'INFO: Done figure saved to {output_path}')
-    """

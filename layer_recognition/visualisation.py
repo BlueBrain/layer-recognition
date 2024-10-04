@@ -24,8 +24,10 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D
+from scipy.optimize import curve_fit
 
 from layer_recognition.geometry import compute_cells_polygon_level
+from layer_recognition.utilities import bimodal, gauss
 
 # plt.rcParams["font.family"] = "Arial"
 layers_color = {
@@ -454,8 +456,11 @@ def plot_layers(
     colors = get_layer_colors(polygons)
     for cells_pos, polygon, color in zip(cells_pos_list, polygons, colors):
         plt.scatter(cells_pos[:, 0], cells_pos[:, 1], s=1, color=color)
-        x, y = polygon.exterior.xy
-        plt.plot(x, y, color=color)
+        try:
+            x, y = polygon.exterior.xy
+            plt.plot(x, y, color=color)
+        except AttributeError:
+            pass
     plt.title(f"{image_name} Layer polygon for alpha={alpha}")
     plt.gca().invert_yaxis()
     plt.gca().axis("equal")
@@ -526,27 +531,47 @@ def plots_cells_size_per_layers(area_dataframe, output_path=None):
 
     labels = ["L1 ", "L2 ", "L3 ", "L4 ", "L5 ", "L6a ", "L6b "]
     ratios = [0.6, 1.2, 2.6, 1.5, 2.7, 3.1, 0.7]
-    _, axes = plt.subplots(7, figsize=(5, 20), gridspec_kw={"height_ratios": ratios})
+    _, axes = plt.subplots(7, figsize=(5, 20), sharex=True, gridspec_kw={"height_ratios": ratios})
 
+    
     layers = np.unique(area_dataframe.RF_prediction)
     for i, layer in enumerate(layers):
         layer_area_dataframe = area_dataframe[area_dataframe.RF_prediction == layer]
         areas = layer_area_dataframe["Area µm^2"].to_numpy()
         diameters = np.sqrt((areas / pi)) * 2
-        _ = axes[i].hist(diameters, bins=100, color=layers_color[layer])
+   
+        y,x,_=axes[i].hist(diameters, 100, alpha=.4, color=layers_color[layer])
+        x=(x[1:]+x[:-1])/2 # for len(x)==len(y)
+        expected = (diameters.mean()-diameters.std(), 0.2, 100,
+                    diameters.mean()+diameters.std(), 0.2, 100)
+        params, cov = curve_fit(bimodal, x, y, expected)
+        sigma=np.sqrt(np.diag(cov))
+        x_fit = np.linspace(x.min(), x.max(), 500)
+
+        y_pop_1 = gauss(x_fit, *params[:3])
+        axes[i].plot(x_fit, y_pop_1, color='black', lw=.4, ls="-", label='cell pop 1')
+        axes[i].vlines(params[0], 0, y_pop_1.max(), colors='red',  lw=1, ls=":")
+        y_pop_2 = gauss(x_fit, *params[3:])
+        axes[i].plot(x_fit, y_pop_2, color='black', lw=.4, ls="-", label='cell pop 2')
+        axes[i].vlines(params[3], 0, y_pop_2.max(), colors='red', lw=1, ls=":")
+
+        
+
         axes[i].spines["top"].set_visible(False)
         axes[i].spines["right"].set_visible(False)
         axes[i].spines["bottom"].set_visible(False)
         axes[i].spines["left"].set_visible(False)
-        axes[i].set_ylim(bottom=0, top=1e4 * ratios[i])
+        #axes[i].set_ylim(bottom=0, top=1e4 * ratios[i])
         axes[i].set_yticklabels([])
         axes[i].set_yticks([])
         axes[i].set_ylabel(labels[i], rotation=0, fontsize=12)
         axes[i].tick_params(axis="x", labelsize=12)
 
+
+    '''
     for i in range(6):
         axes[i].set_xticks([])
-
+    '''
     scalebar = AnchoredHScaleBar(
         size=5000,
         label="5000",
@@ -559,9 +584,12 @@ def plots_cells_size_per_layers(area_dataframe, output_path=None):
 
     axes[5].add_artist(scalebar)
 
-    axes[0].set_title("S1HL cells mean diameter (µm)", fontsize=12)
+    axes[0].set_title("Cells mean diameter (µm)", fontsize=12)
+    print(output_path)
     plt.savefig(output_path, bbox_inches="tight", pad_inches=0)
 
+
+ 
 
 def plots_cells_size(
     area_dataframe, output_path=None, save_plot_flag=False, visualisation_flag=False
@@ -577,7 +605,7 @@ def plots_cells_size(
     _ = plt.hist(diameters, bins=100)
     plt.ylabel("Cell count")
     plt.xlabel("Cell area (µm^2)")
-    plt.title("S1HL Cell area (µm^2)")
+    plt.title("Cells area (µm^2)")
 
     current_values = plt.gca().get_yticks()
     plt.gca().set_yticklabels([f"{x:.1e}" for x in current_values])
@@ -619,9 +647,11 @@ def plots_layer_thickness(
 
     # Création des barres d'erreurs
     fig, ax = plt.subplots(figsize=(10, 7))
-    print(f'INFO: Layers thickness mean and std:')
-    for layer, mean, std in zip(layers_label, all_animal_thickness_mean, all_animal_thickness_std):
-        print(f' {layer}: {mean} {std}') 
+    print(f"INFO: Layers thickness mean and std:")
+    for layer, mean, std in zip(
+        layers_label, all_animal_thickness_mean, all_animal_thickness_std
+    ):
+        print(f" {layer}: {mean} {std}")
     plt.barh(
         layers_label,
         all_animal_thickness_mean,
@@ -697,29 +727,34 @@ def plot_cell_density_by_animal(
 
     index = 0
     label = "animal mean"
-    for values in densities_dict_mean.values():
+    for key, values in densities_dict_mean.items():
         for density in values:
-            if label is not None:
-                plt.scatter(
-                    density,
-                    index + (np.random.rand() / 2) - 0.25,
-                    s=5,
-                    c="orange",
-                    label=label,
-                )
-                label = None
+            if np.isnan(density) == False:
+                if label is not None:
+                    plt.scatter(
+                        density,
+                        index + (np.random.rand() / 2) - 0.25,
+                        s=5,
+                        c="orange",
+                        label=label,
+                    )
+                    label = None
+                else:
+                    plt.scatter(
+                        density, index + (np.random.rand() / 2) - 0.25, s=5, c="orange"
+                    )
             else:
-                plt.scatter(
-                    density, index + (np.random.rand() / 2) - 0.25, s=5, c="orange"
-                )
+                print(f"INFO {key} density is NAN")
         index += 1
 
     plt.gca().invert_yaxis()
     plt.legend()
 
-    fig.savefig(output_path, bbox_inches="tight", pad_inches=0)
     if visualisation_flag:
         plt.show()
+    else:
+       fig.savefig(output_path, bbox_inches="tight", pad_inches=0)
+
 
     """
     print(density_animal_dataframe)

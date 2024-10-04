@@ -17,12 +17,10 @@ import qupath.ext.biop.cellpose.Cellpose2D
 
 def logger = LoggerFactory.getLogger(this.class);
 
-def brain_area_name = 'MPtA'
 def modelPath =  "/arch/cellpose_model/cellpose_residual_on_style_on_concatenation_off_train_2022_01_11_16_14_20.764792"
 def saveFolderPath =  "/arch/Results"
 def CountourFinderPath = "/arch/qupath_scripts/CountourFinder.json"
 def LayerClassifierPath = "/arch/qupath_scripts/Layer Classiffier.json"
-def run_classifier = 'True'
 
 logger.info("cellpose model path: {}", modelPath)
 logger.info("Save folder: {}", saveFolderPath)
@@ -39,14 +37,14 @@ def rainbowPower(int n) {
 if (entryMetadata['Analyze'] == 'True') {
     println ("ANALYSE == true")
 
-    // Expand brain_area_name Annotation
-    selectObjectsByPathClass( getPathClass( brain_area_name ) )
+    // Expand MPtA Annotation
+    selectObjectsByPathClass( getPathClass( "MPtA" ) )
     runPlugin('qupath.lib.plugins.objects.DilateAnnotationPlugin', '{"radiusMicrons": 200.0,  "lineCap": "Round",  "removeInterior": false,  "constrainToParent": false}');
 
     // Pick up the dilated annotation, which is the one with the same class but largest area
-    def s1hl = getAnnotationObjects().findAll{ it.getPathClass() == getPathClass(brain_area_name) }.max{ it.getROI().getArea() }
+    def s1hl = getAnnotationObjects().findAll{ it.getPathClass() == getPathClass("MPtA") }.max{ it.getROI().getArea() }
 
-    // Pick up the SliceContour to subtract it from the dilated brain_area_name
+    // Pick up the SliceContour to subtract it from the dilated MPtA
     def sliceC = getAnnotationObjects().find{ it.getPathClass() == getPathClass( "SliceContour" ) }
 
     // Do some sexy geometry
@@ -58,7 +56,7 @@ if (entryMetadata['Analyze'] == 'True') {
 
     addObject( outPia )
 
-    // Delete original dilated brain_area_name
+    // Delete original dilated MPtA
     removeObject(s1hl, true)
 
     // Cleanup and show
@@ -75,7 +73,7 @@ if (entryMetadata['Analyze'] == 'True') {
                    "Layer 6 a",
                    "Layer 6 b",
                    "Outside Pia",
-                   brain_area_name,
+                   "MPtA",
                    "SliceContour"
                   ]
     println ("layer.size()")
@@ -121,7 +119,7 @@ if (entryMetadata['Analyze'] == 'True') {
     // Run detection for the selected objects
     def imageData = getCurrentImageData()
 
-    def pathObjects = getObjects{ it.getPathClass().equals( getPathClass( brain_area_name ) ) }
+    def pathObjects = getObjects{ it.getPathClass().equals( getPathClass( "MPtA" ) ) }
     //if (pathObjects.isEmpty()) {
     //    Dialogs.showErrorMessage("Cellpose", "Please select a parent object!")
     //}
@@ -164,10 +162,8 @@ if (entryMetadata['Analyze'] == 'True') {
     selectAnnotations()
     runPlugin('qupath.opencv.features.DelaunayClusteringPlugin', '{"distanceThresholdMicrons": 0.0,  "limitByClass": false,  "addClusterMeasurements": false}')
     runPlugin('qupath.lib.plugins.objects.SmoothFeaturesPlugin', '{"fwhmMicrons": 50.0,  "smoothWithinClasses": false}')
-    
-    if (run_classifier == 'True') {
-        runObjectClassifier(LayerClassifierPath)
-    }
+    //runObjectClassifier("Layer Classiffier")
+    //runObjectClassifier(LayerClassifierPath)
     println 'Add features for classifer and run it Done!'
 
 
