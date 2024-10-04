@@ -190,7 +190,7 @@ def compute_depth_density(
         print(
             f"ERROR {image_name} there are  {total_used_cells}/{len(cells_centroid_x)}  used cells"
         )
-        return None
+        return None, None
 
     densities_dataframe = pd.DataFrame(
         {

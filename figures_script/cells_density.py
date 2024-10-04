@@ -107,11 +107,12 @@ def concate_density_dataframes(file_list, std_dev_factor=1):
     """
     df = pd.DataFrame()
     densities = []
-
     for file in file_list:
         df_image = pd.read_csv(file, index_col=0)
+       
         densities.append(df_image.densities)
-    densities_mean = np.mean(densities)
+        densities_mean = np.mean(densities)
+
     std_dev = np.std(densities) * 1
     df = pd.DataFrame()
     frames = []
@@ -191,7 +192,9 @@ def plot(
     plt.gca().set_xlabel("Cell density cells/mm3")
     plt.gca().set_ylabel("percentage of depth [%]")
     current_values = plt.gca().get_yticks()
-    _ = plt.gca().set_yticklabels(["{:.1e}".format(x) for x in current_values])
+    print(f'DEBUG title {title}, current_values {current_values}')
+    
+    _ = plt.gca().set_yticklabels([format(x, ".0%") for x in current_values])
     current_values = plt.gca().get_xticks()
     _ = plt.gca().set_xticklabels(["{:.1e}".format(x) for x in current_values])
     plt.legend()
@@ -261,7 +264,7 @@ def plot_mean_and_std_dev(
                 label=label + " Standard deviation",
             )
 
-            print(f'DEBUG: layer_boundary_df {layer_boundary_df}')
+          
             if layer_boundary_df is not None:
                 colors = get_color()
                 for layer, boundary in zip(layer_boundary_df.layers, layer_boundary_df.boundaries):
@@ -274,7 +277,7 @@ def plot_mean_and_std_dev(
             current_values = plt.gca().get_xticks()
             _ = plt.gca().set_xticklabels(["{:.1e}".format(x) for x in current_values])
             current_values = plt.gca().get_yticks()
-            _ = plt.gca().set_yticklabels(["{:.1e}".format(x) for x in current_values])
+            _ = plt.gca().set_yticklabels([format(x, ".0%") for x in current_values])
 
     plt.gca().invert_yaxis()
     if title:
@@ -331,6 +334,8 @@ def plot_density_per_layer(
     current_values = plt.gca().get_xticks()
     _ = plt.gca().set_xticklabels(["{:.1e}".format(x) for x in current_values])
     plt.yticks(ind, columns)
+    current_values = plt.gca().get_yticks()
+    _ = plt.gca().set_yticklabels([format(x, ".0%") for x in current_values])
     plt.gca().invert_yaxis()
     plt.title(title)
 
@@ -425,11 +430,8 @@ if __name__ == "__main__":
             layer_boundary_df = None
         else:
             layer_boundary_df = pd.concat(frames, ignore_index=True)
-            layer_boundary_df = layer_boundary_df[['layers','boundaries']].groupby(['layers']).mean().reset_index()
-            
-           
-
-
+            layer_boundary_mean_df = layer_boundary_df[['layers','boundaries']].groupby(['layers']).mean(numeric_only=True).reset_index()
+        
     if args.per_depth_path:
         file_list = glob.glob(str(args.per_depth_path) + "/*.csv")
         density_df = concate_density_dataframes(file_list)
@@ -447,7 +449,7 @@ if __name__ == "__main__":
             "Cell density as a function of SSCX region percentage of depth.",
             plot_median=True,
             plt_detail=False,
-            layer_boundary_df=layer_boundary_df,
+            layer_boundary_df=layer_boundary_mean_df,
             output_path=str(args.output_figure_path / "median_density_percentage.")
             + args.png,
             visualisation_flag=args.visualisation_flag,
@@ -460,14 +462,14 @@ if __name__ == "__main__":
             plt_detail=True,
             output_path=str(args.output_figure_path / "full_density_percentage.")
             + args.png,
-            layer_boundary_df = layer_boundary_df,
+            layer_boundary_df = layer_boundary_mean_df,
             visualisation_flag=args.visualisation_flag,
         )
 
         print(f"Plot {np.unique(density_df.image).size} images included the data")
         plot_mean_and_std_dev(
             density_df,
-            layer_boundary_df=layer_boundary_df,
+            layer_boundary_df=layer_boundary_mean_df,
             title=f"Cell density as a function of percentage of depth of the {brain_area} brain region",
             output_path=str(args.output_figure_path / "full_std_density_percentage.")
             + args.png,
@@ -486,6 +488,11 @@ if __name__ == "__main__":
             left_density_df = get_filtered_density_df(left_image_id, density_df)
             right_density_df = get_filtered_density_df(right_image_id, density_df)
 
+            left_layer_boundary_df = get_filtered_density_df(left_image_id, layer_boundary_df)
+            left_layer_boundary_mean_df = left_layer_boundary_df[['layers','boundaries']].groupby(['layers']).mean(numeric_only=True).reset_index()
+            right_layer_boundary_df = get_filtered_density_df(right_image_id, layer_boundary_df)
+            right_layer_boundary_mean_df = right_layer_boundary_df[['layers','boundaries']].groupby(['layers']).mean(numeric_only=True).reset_index()
+
             data = dataframe_to_array(left_density_df)
             print(
                 f"Plot {np.unique(left_density_df.image).size} images included the left_density_df"
@@ -493,7 +500,7 @@ if __name__ == "__main__":
             plot(
                 data,
                 "Left Hemisphere cell density as a function of SSCX region percentage of depth.",
-                layer_boundary_df=layer_boundary_df,
+                layer_boundary_df=left_layer_boundary_mean_df,
                 plt_detail=True,
                 output_path=str(args.output_figure_path / "left_density_percentage.")
                 + args.png,
@@ -507,7 +514,7 @@ if __name__ == "__main__":
             plot(
                 data,
                 "Right Hemisphere cell density as a function of SSCX region percentage of depth",
-                layer_boundary_df=layer_boundary_df,
+                layer_boundary_df=right_layer_boundary_mean_df,
                 plt_detail=True,
                 output_path=str(
                     args.output_figure_path / "right_std_density_percentage."
@@ -524,7 +531,7 @@ if __name__ == "__main__":
             )
             plot_mean_and_std_dev(
                 [left_density_df, right_density_df],
-                layer_boundary_df=layer_boundary_df,
+                layer_boundary_df=layer_boundary_mean_df,
                 labels=["left", "right"],
                 colors=["blue", "red"],
                 title=f"Cell density as a function of percentage of depth of the {brain_area} brain region",
@@ -544,9 +551,15 @@ if __name__ == "__main__":
                 animal_image_id = list(animal_meta_df["Image_Name"])
                 animal_density_df = get_filtered_density_df(animal_image_id, density_df)
                 data = dataframe_to_array(animal_density_df)
+
+                animal_bundaries_df= get_filtered_density_df(animal_image_id, layer_boundary_df)
+                animal_bundaries_mean_df = animal_bundaries_df[['layers','boundaries']].groupby(['layers']).mean(numeric_only=True).reset_index()
+
+
+
                 plot_mean_and_std_dev(
                     [animal_density_df],
-                    layer_boundary_df=layer_boundary_df,
+                    layer_boundary_df=animal_bundaries_mean_df,
                     title=f"{project_id}_mean and std cell density",
                     output_path=f"{args.output_figure_path}/{project_id}_std_density_percentage."
                     + args.png,
@@ -556,38 +569,41 @@ if __name__ == "__main__":
                 plot(
                     data,
                     f"{project_id} cell density as a function of SSCX region percentage of depth",
-                    layer_boundary_df=layer_boundary_df,
+                    layer_boundary_df=animal_bundaries_mean_df,
                     plt_detail=True,
                     output_path=f"{args.output_figure_path}/{project_id}_all_traces."
                     + args.png,
                     visualisation_flag=args.visualisation_flag,
                 )
 
-        ## Plot Both hemipheres pool
-        animal_ids = get_animals_id_list(meta_df)
-        for animal_id in animal_ids:
-            df_animal = analyse_df[analyse_df["Project_ID"].str.contains(animal_id)]
-            animal_image_id = list(df_animal["Image_Name"])
-            animal_density_df = get_filtered_density_df(animal_image_id, density_df)
-            data = dataframe_to_array(animal_density_df)
-            plot_mean_and_std_dev(
-                [animal_density_df],
-                layer_boundary_df=layer_boundary_df,
-                title=f"animal {animal_id} mean and std cell density",
-                output_path=f"{args.output_figure_path}/animal_{animal_id}_std_density_percentage."
-                + args.png,
-                visualisation_flag=args.visualisation_flag,
-            )
+            ## Plot Both hemipheres pool
+            animal_ids = get_animals_id_list(meta_df)
+            for animal_id in animal_ids:
+                df_animal = analyse_df[analyse_df["Project_ID"].str.contains(animal_id)]
+                animal_image_id = list(df_animal["Image_Name"])
+                animal_density_df = get_filtered_density_df(animal_image_id, density_df)
+                animal_layer_boundary_df = get_filtered_density_df(animal_image_id, layer_boundary_df)
+                animal_bundaries_mean_df = animal_layer_boundary_df[['layers','boundaries']].groupby(['layers']).mean(numeric_only=True).reset_index()
 
-            plot(
-                data,
-                f"animal {animal_id} ll traces cell density as a function of SSCX region percentage of depth",
-                layer_boundary_df=layer_boundary_df,                
-                plt_detail=True,
-                output_path=f"{args.output_figure_path}/animal_{animal_id}_all_traces."
-                + args.png,
-                visualisation_flag=args.visualisation_flag,
-            )
+                data = dataframe_to_array(animal_density_df)
+                plot_mean_and_std_dev(
+                    [animal_density_df],
+                    layer_boundary_df=animal_bundaries_mean_df,
+                    title=f"animal {animal_id} mean and std cell density",
+                    output_path=f"{args.output_figure_path}/animal_{animal_id}_std_density_percentage."
+                    + args.png,
+                    visualisation_flag=args.visualisation_flag,
+                )
+
+                plot(
+                    data,
+                    f"animal {animal_id} ll traces cell density as a function of SSCX region percentage of depth",
+                    layer_boundary_df=animal_bundaries_mean_df,
+                    plt_detail=True,
+                    output_path=f"{args.output_figure_path}/animal_{animal_id}_all_traces."
+                    + args.png,
+                    visualisation_flag=args.visualisation_flag,
+                )
 
         ## Cell density mean value per image cells/mm3
 
@@ -604,7 +620,7 @@ if __name__ == "__main__":
         print(f"Plot {len(layer_df)} images included the layer_df")
         plot_density_per_layer(
             layer_df,
-            layer_boundary_df=layer_boundary_df,
+            layer_boundary_df=layer_boundary_mean_df,
             title="Cell density per layer (Merged L2/L3)",
             output_path=str(args.output_figure_path / "per_layer_merge_23.") + args.png,
             distiguish=False,
@@ -612,19 +628,7 @@ if __name__ == "__main__":
         )
 
     if args.per_layer_distinguish_path:
-        """
-        ## Distinguish Layer 2 and 3
-        path_d = args.per_layer_distinguish_path
-        d_layer_df = get_per_layer_df(path_d)
 
-        print(f"Plot {len(d_layer_df)} images included the d_layer_df")
-        plot_density_per_layer(
-            d_layer_df,
-            title="Cell density per layer (Distinguishable L2/L3)",
-            output_path=args.output_figure_path / "per_layer_distinguish_23.png",
-            visualisation_flag=args.visualisation_flag
-        )
-        """
         animal_by_image = get_animal_by_image_id(args.metadata_file_path)
 
         densites = defaultdict(lambda: defaultdict(list))
