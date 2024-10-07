@@ -38,7 +38,6 @@ alongside a few QuPath annotations made by experts and metadata in a CSV file, t
 
 <img src="docs/source/images/per_layer_distinguish_23.png" alt="per_layer_distinguish_23.png" width="200"/>
 
-
 ### The pipeline consists of two main steps:
 1. With the assistance of QuPath (a third-party application), perform cell detection and export cell features and annotations.
 2. Process the data exported by QuPath in the previous step to compute the boundaries of the layers and cell densities."
@@ -76,6 +75,14 @@ Meystre J, Jacquemier J, Bürri O, Zsolnai C, Frank N,  Perin R, Keller D, Markr
 # Publications that use or mention layer-recognition
 
 The list of publications that use or mention layer-recognition can be found on `the github wiki page <https://github.com/BlueBrain/arch/wiki/Publications-that-use-or-mention-arch>`_.
+
+# Features naming code versus paper
+Note: some features exported from QuPath, which are used in the Python package, have been renaming in the Paper for a better understanding. 
+Following the correspondances between features naming in the Pypthon package and in the paper.
+
+- Hematoxylin: Std.Dev                  ->  CresylViolet: Std.Dev
+- DAB: Std.Dev                          -> CresylViolet: Std.Dev
+- Smoothed: 50 μm: Hematoxylin: Std.Dev -> Smoothed: 50 μm: CresylViolet: Std.Dev.
 
 
 # Install
